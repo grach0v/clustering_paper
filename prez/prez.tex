@@ -1,0 +1,227 @@
+\documentclass{beamer}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{movie15}
+
+\graphicspath{ {./images/} }
+
+\DeclareMathOperator{\argmax}{argmax}
+
+\title{Clustering of Multidimensional Random Variables to Improve HMM Sequence Alignment Accuracy}
+\subtitle{Denis Grachev}
+
+%\usetheme{lucid}
+\begin{document}
+	\frame {
+		\titlepage
+	}
+	\frame {
+		\frametitle{Clustering}
+        \begin{block}{Clustering}
+		Given $ X = \{ x_i | x_i \in \mathbb{R}^d, i \in (1 \ldots n) \} $ and $l$ - number of clusters. \\ 
+		Clustering is assigning each point to one cluster $C = \{ c_i | c_i \in (1 \ldots l), i \in (1 \ldots n) \} $. \\
+		\end{block}
+
+        \begin{block}{Example}
+		for $\mathbb{R}^2$ and $l = 2$
+
+        \begin{figure}
+            \includegraphics{example_clustering}
+            \caption{Example of clustering}
+        \end{figure}
+        \end{block}
+	}
+
+    \frame {
+        \frametitle{Genome}
+
+        \begin{block}{Defenition}
+        Reference genome - $S_r$ string over alphabet $\{ A, C, G, T \}$ . \\
+        Example genome - $S_e$ string over alphabet $\{ A, C, G, T\}$. \\
+        Example genome does not differ much from reference genome. \\
+        Reads - $R = \{r_i | r_i - \text{random substring from } S_e \text{ with errors} \}$ \\
+        \end{block}
+
+        \begin{block}{Task}
+        We have $S_r$ and $R$, want to find out $S_e$. \\ 
+        \end{block}
+
+    }
+
+    \frame {
+        \frametitle{Allignment}
+        \begin{block}{Explanation}
+        To find out $S_e$ we try to locate substrings from $R$ on $S_r$ with least possible amount of errors.
+        This process is called alignment.\\
+        Then we try to estimate most likely difference between $S_e$ and $S_r$.\\
+        This process is called variant calling.\\
+        \end{block}
+
+        \begin{block}{Example}
+        \begin{figure}
+            \includegraphics[scale=0.3]{aligned_reads}
+            \caption{Example of alignment}
+        \end{figure}
+        \end{block}
+    }
+
+    \frame {
+        \frametitle{Markov chains}
+        The probabilities of transitions are not equal. \\
+        We can use it for better accuracy of variant calling.\\
+        Also these probabilities varies depending on a region. \\
+        For every read we can calculate transition probabilities and cluster them. \\
+        Then use probabilities obtained in each cluster for corresponding reads.\\
+        
+        \begin{figure}
+            \includegraphics[scale=0.3]{markov_chains}
+            \caption{transitions}
+        \end{figure}
+    }
+
+    \frame {
+        \frametitle{Algorithm}
+        \begin{block}{Preprocess}
+            \begin{enumerate}
+                \item For each read calculate each transitions.
+                \item Each feateture is devided by standart deviation.
+                \item PCA method is applied for resulting data.
+            \end{enumerate}
+        \end{block}
+        
+        Assume that distribution in each cluster is multidimensional normal distribution.
+
+        \begin{block}{Likelihood}
+        $\Theta = \{ \theta_i | \theta_i \text{ - parameters of ith cluster} \}$ \\ 
+        We can estimate parameters of each cluster based on $X$ and $C$. \\
+        Denote ith class as $\omega_i$, then probability of $x$ belong to ith cluster is
+        $$ p(x | \Theta) = p(x | \omega_i, \theta_i) P(\omega_i) $$ 
+
+        \end{block}
+    }
+
+    \frame {
+        \frametitle{Algorithm}
+        Denote clusters as $ \chi_1 \ldots \chi_l $, than logarithm of probability for all points is of cluster is 
+
+        \begin{align*}
+            L_i &= \sum_{x \in \chi_i} \log(p(x| \omega_i, \theta_i)P(\omega_i)) \\
+                &=  \log \left( 
+                \frac{ \exp \left( \frac{-1}{2} (x - \mu_i)^T \Sigma_i^{-1} (x - \mu_i) \right) }
+                {(2 \pi)^{d/2} |\Sigma_i| ^ {1/2}}
+                \right) + n_i \log(P(\omega_i)) \\
+                &= -\frac{1}{2} n_i d - \frac{n_i d}{2} \log(2 \pi) - \frac{n_i}{2} \log |\Sigma_i| + n_i \log \frac{n_i}{n}.
+        \end{align*} 
+
+        Where $\mu_i$ is mean value and $\Sigma_i$ - covariation of ith cluster.
+
+        Overall likelihood is 
+        $$ L = \sum_{i = 1}^l L_i$$ 
+    }
+
+    \frame {
+        \frametitle{Algorithm}
+        Move $\hat{x}$ from $\chi_i$ to $\chi_j$, then
+
+        \begin{align*}
+            \Delta L_i = &-\frac{1}{2} \log |\Sigma_i| + \frac{n_i - 1}{2} 
+                \log \left(1 - \frac{(\hat{x} - \mu_i)^T \Sigma_i^{-1}(\hat{x} - \mu)}{n_i - 1} \right) + \\
+                 &+ \log \frac{n_i}{n} - (n_i - 1)(\frac{d}{2} + 1) \log \frac{n_i - 1}{n_i}
+        \end{align*}
+        
+        \begin{align*}
+            \Delta L_j = &-\frac{1}{2} \log |\Sigma_j| - \frac{n_j + 1}{2} 
+                \log \left(1 + \frac{(\hat{x} - \mu_j) \Sigma_j^{-1} (\hat{x} - \mu_j)}{n_j + 1}\right) + \\
+                 &+ \log \frac{n_j}{n} + (n_j + 1)(\frac{d}{2} + 1) \log \frac{n_j + 1}{n_j}.
+        \end{align*}
+
+        \begin{align*}
+            \Delta L &= \Delta L_i + \Delta L_j
+        \end{align*}
+    }
+
+    \frame {
+        \frametitle{Algorithm}
+        \begin{block}{Idea}
+            \begin{enumerate}
+                \item Initialize clusters (randomly or using another algorithm)
+                \item Iterate over all points
+                \begin{enumerate}
+                    \item Move point to a cluster, such that overall likelihood increases the most. (With most $\Delta L_j$)
+                    \item Update clusters and their parameters.
+                \end{enumerate}
+                \item Repeat step 2 while it makes changes.
+            \end{enumerate}
+        \end{block}
+
+        \begin{block}{Advantage}
+            \begin{itemize}
+                \item After every step overall likelihood increases.
+                \item This implies that the cycle will end.
+            \end{itemize}
+        \end{block}
+
+        \begin{block}{Problem}
+            \begin{itemize}
+                \item Updateting parameters after every step is very slow.
+            \end{itemize}
+        \end{block}
+    }
+
+    \begin{frame}
+        \frametitle{Algorithm}
+        \begin{block}{Fix 1}
+            \begin{itemize}
+                \item Update parameters every $k$ points.
+                \item If overall likelihood decreased, revert changes.
+            \end{itemize}
+        \end{block}
+
+        \begin{block}{Bad}
+            \begin{itemize}
+                \item Can stuck in a loop, transfering and reverting same points.
+            \end{itemize}
+        \end{block}
+
+        \begin{block}{Fix 2}
+            \begin{itemize}
+                \item Pick points randomly and apply algorithm for them. Then repeat for another points.
+            \end{itemize}
+        \end{block}
+
+    \end{frame}
+
+    \frame {
+        \frametitle{Algorithm}
+        \begin{block}{Fixed}
+        \begin{enumerate}
+            \item Initialize clusters and estimate their parameters
+            \item Devide $X$ into $p$ random disjoined groups $g_1 \ldots g_p$.
+            \item Loop c from $1$ to $p$.
+            \begin{enumerate}
+                \item Loop $x$ over $g_c$.
+                \item Let $x$ currently be in cluster $i$.
+                \begin{enumerate}
+                    \item If $n_i <= 1$, then pass to next point.
+                    \item Calculate $\delta_{j}=
+                        \left\{\begin{array}{cc}
+                        \Delta L_{j}, & j \neq i \\
+                        \Delta L_{i}, & j=i
+                        \end{array}\right. $
+                    \item Trasfer $x$ to $\argmax (\delta_j)$ cluster.
+                \end{enumerate} 
+                \item Update parameters.
+                \item If overall likelihood decreased, revert changes.
+            \end{enumerate}
+            \item If any changes were made, repeat step 2.
+        \end{enumerate}
+        \end{block}
+    }
+
+    \frame {
+        \frametitle{Algorithm} {
+            We can cluster reads and use different Markov models for each cluster. 
+        }
+    }
+
+\end{document}
