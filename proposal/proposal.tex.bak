@@ -4,9 +4,8 @@
 \usepackage{amsmath,amssymb,amsthm}
 \usepackage[a4paper,hmargin=2.5cm,vmargin=2.5cm]{geometry}
 \usepackage[english]{babel}
-% \usepackage{graphics}
+\usepackage{graphics}
 \usepackage{float}
-\usepackage{graphicx}
 
 
 \DeclareMathOperator{\argmax}{argmax}
@@ -78,7 +77,7 @@ Moscow 2022
 \tableofcontents
 \newpage
 \section{Introduction}
-\subsection{Clustering}
+\subsection{Clsutering}
 
 Given $X = \{x_i | x_i \in \mathbb{R}^d, i \in \left( 1 \ldots n \right) \}$ and $m \in \mathbb{N}$,
 where $n$ is the number of points, $m$ - number of clusters. \\
@@ -98,7 +97,7 @@ Clustering algorithm takes $X$ and $m$ and outputs $C = \{ c_i | c_i \in \left( 
 \end{definition}
 
 \begin{definition}
-    Alignment of strings $s_1$ and $s_2$ of lengths $l_1$ and $l_2$ respectively, 
+    Alignment of strings $s_1$ and $s_2$ of lengths $l_1$ and $l_2$ respectivly, 
     over alphabet $A$ is a pair of strings $\hat{s}_1$ and $\hat{s}_2$ 
     of length $l$ over alphabet $A \sqcup \{ - \}$, 
     such that there exists increasing functions $f_i: \{1 \ldots l_i \} \rightarrow \{ 1 \ldots l\}$ 
@@ -154,7 +153,7 @@ Clustering algorithm takes $X$ and $m$ and outputs $C = \{ c_i | c_i \in \left( 
 \end{proof}
 
 \begin{definition}
-    For a string $s$ of length $l$, sub-string $s_s$ 
+    For a string $s$ of length $l$, substring $s_s$ 
     is a string of length $l_s$, such that there exists an function
     $$f: \{ 1 \ldots l_s \} \rightarrow \{ 1 \ldots l\}$$
     $$f(i) = i + d $$
@@ -162,20 +161,19 @@ Clustering algorithm takes $X$ and $m$ and outputs $C = \{ c_i | c_i \in \left( 
 \end{definition}
 
 \begin{definition}
-    For a string $s_1$ and $s_2$ of lengths $l_1, l_2$ correspondingly, define string-sub-string score as 
-    $$ S_s (s_1, s_2) = \min \{ S(s_s, s_2) | s_s \text{ is a sub-string of } s \}$$
+    For a string $s_1$ and $s_2$ of lengths $l_1, l_2$ correspondenly, define string-substring score as 
+    $$ S_s (s_1, s_2) = \min \{ S(s_s, s_2) | s_s \text{ is a substring of } s \}$$
 
     and corresponding alignment $\hat{s}_1, \hat{s}_2$ 
     are pair of strings of lengths $l$ over alphabet $A \sqcup \{ - \}$
-    such that there exists increasing functions 
-    $f_1: \{1 \ldots l_1 \} \rightarrow \{ 1 \ldots l\}$
+    such that there exists 
 \end{definition}
 
 \begin{definition}
-    For a string $s$ of length $l$ and set of strings $R = \{ s_1 \ldots s_n \}$ 
-    of lengths $\{ l_1 \ldots l_n \}$ correspondingly, 
+    For a string $s$ and set of strings $R = \{ s_1 \ldots s_n \}$ 
     multiple alignment is tuple $\hat{s}, \hat{s}_1 \ldots \hat{s}_n$, 
-    of strings of length $l$ over alphabet $A \sqcup \{ - \}$, such that $\sum_{i = 1}^n S(\hat{s}, \hat{s}_i)$ is minimal.
+    such that  
+
 \end{definition}
 
 \begin{definition}
@@ -185,18 +183,11 @@ Clustering algorithm takes $X$ and $m$ and outputs $C = \{ c_i | c_i \in \left( 
 
 \section{Task}
 Given reference string $s_r$ and reads $R$ for an unknown target string $s_t$, 
-we know that $S(s_r, s_t) < D$ and whant to find $s_t$. \\
+we know that $S(s_r, s_t) < D$ and what to find $s_t$.
 
-Plan:
 \begin{enumerate}
-    \item Make multiple alignment of $R$ over $s_r$.
-    \item Estimate most likely difference between $s_r$ and $s_t$.
+    \item Locate items from $R$ 
 \end{enumerate}
 
-\begin{figure}[H]
-    \includegraphics[scale=0.5]{aligned_reads.png}
-    \centering
-    \caption{Example of reference string, target string and reads.}
-\end{figure}
 
 \end{document}
