@@ -77,7 +77,52 @@ Moscow 2022
 
 \tableofcontents
 \newpage
+
 \section{Introduction}
+Bioinformatics is an interdisciplinary science that aims 
+to develops methods and software tools 
+for understanding biological data. 
+One of the ways to model haploid genome is to present it as 
+pair of sequences or strings over the alphabet $\{ A, C, G, T \}$. 
+Modern technologies of reading genome do not sequence it as one 
+continious string, but a number of random overlaping substrings 
+that are called reads. 
+As within one biological species genomes coincide almost completely, 
+it is convenient to determine one reference genome for one species 
+and identify for every individual deviations from reference.
+These single nucleotide variants are called SNVs.  
+
+Taking into cosideration these facts and the fact that various 
+errors happen during all stages of the process, a number of 
+problems appears for example:
+\begin{itemize}
+    \item \textbf{Genome assembly} is process of  
+    deciphering genome using reads obtained from it.
+    
+    \item \textbf{Sequence alignment} is process of 
+    arranging sequences to spot similarities between them. 
+    
+    \item \textbf{Variant calling} is process of identifying 
+    SNVs of an individual based on reads aligned on reference genome.
+\end{itemize}
+
+The most commonly used technologies nowadays, 
+such as illumina, allow to sequence reads of length 200-500 bp.
+Sequencing human genome using such short length reads 
+has many limitations. 
+First, due to diploidy of humans, it is important to obtain
+long-range haplotype information. This might be difficult 
+with short-reads provided by illumina. Secondly $~3.6\%$ of 
+human genome consists of long highly repetative 
+duplicated regeions that can not be uniquely aligned, 
+which lowers accuracy of SNVs. 
+Third-generation single-molecule sequencing techologies 
+genereate longer reads of length 10-30 kb. 
+This techology might help overcome limitations that 
+short-reads have. Tools that use 
+
+\newpage
+\section{Methods}
 \subsection{Clustering}
 
 Given $X = \{x_i | x_i \in \mathbb{R}^d, i \in \left( 1 \ldots n \right) \}$ and $m \in \mathbb{N}$,
@@ -199,4 +244,7 @@ Plan:
     \caption{Example of reference string, target string and reads.}
 \end{figure}
 
+
+
 \end{document}
+

@@ -1,5 +1,6 @@
 \babel@toc {english}{}
 \contentsline {section}{\numberline {1}Introduction}{3}{}%
-\contentsline {subsection}{\numberline {1.1}Clustering}{3}{}%
-\contentsline {subsection}{\numberline {1.2}Strings}{3}{}%
-\contentsline {section}{\numberline {2}Task}{4}{}%
+\contentsline {section}{\numberline {2}Methods}{4}{}%
+\contentsline {subsection}{\numberline {2.1}Clustering}{4}{}%
+\contentsline {subsection}{\numberline {2.2}Strings}{4}{}%
+\contentsline {section}{\numberline {3}Task}{5}{}%
