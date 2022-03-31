@@ -89,7 +89,7 @@ continious string, but a number of random overlaping substrings
 that are called reads. 
 As within one biological species genomes coincide almost completely, 
 it is convenient to determine one reference genome for one species 
-and identify for every individual deviations from reference.
+and identify for every individual deviations from the reference.
 These single nucleotide variants are called SNVs.  
 
 Taking into cosideration these facts and the fact that various 
@@ -103,7 +103,7 @@ problems appears for example:
     arranging sequences to spot similarities between them. 
     
     \item \textbf{Variant calling} is process of identifying 
-    SNVs of an individual based on reads aligned on reference genome.
+    SNVs of an individual based on reads aligned on the reference genome.
 \end{itemize}
 
 The most commonly used technologies nowadays, 
@@ -116,18 +116,56 @@ with short-reads provided by illumina. Secondly $~3.6\%$ of
 human genome consists of long highly repetative 
 duplicated regeions that can not be uniquely aligned, 
 which lowers accuracy of SNVs. 
-Third-generation single-molecule sequencing techologies 
+Third-generation single-molecule sequencing (SMS) techologies,
+such as Oxford Nanopore Technologies allow to   
 genereate longer reads of length 10-30 kb. 
 This techology might help overcome limitations that 
-short-reads have. Tools that use 
+short-reads have. Variant calling tools that were developed 
+for short-reads do not show high accuracy when applied 
+to long-reads sequenced, due to significant difference 
+in error rates and type of errors between these two types of reads. 
+Also these tools process data in short windows 
+of a few hundred bases lengths and not designed to agregate  
+haplotype information present in long-reads, 
+which might be crucial for distinguishing true deviations 
+from errors.  
+
+A number of new methods of variant calling were developed 
+to work with long-reads, such as Deep Variant
+and Longshot that uses deep learning 
+and pair-Hidden Markov model algorithms to effectivly work with 
+such data.  
+Accuracy of these methods can be improved by agrigating 
+information from multiple sequence data sets together. 
+An example of effectiveness of such method is 
+Spades genome assembly tool, which uses short and long 
+read data together.  
+
+Longshot works effectivly with one type of reads. 
+To improve it's sencetivity and accuracy various 
+methods of collecting data from diiferent sources 
+can be applied. 
+Previous research show that sequencing reads 
+different profiles and clustering them 
+by their profiles can improve variant calling accuracy.
+
+During this work we are going to extend functionality of 
+Longshot tool to work effectivly with multiple datasets. 
+For that we have to develop clustering algorithm for 
+read profiles and implement such feature into Longshot. 
+
 
 \newpage
 \section{Methods}
 \subsection{Clustering}
-
-Given $X = \{x_i | x_i \in \mathbb{R}^d, i \in \left( 1 \ldots n \right) \}$ and $m \in \mathbb{N}$,
-where $n$ is the number of points, $m$ - number of clusters. \\
-Clustering algorithm takes $X$ and $m$ and outputs $C = \{ c_i | c_i \in \left( 1 \ldots m \right), i \in \left( 1 \ldots n \right)\}$.
+\begin{definition}
+    Clustering algorithm aims to group points together into predefined number of sets. \\
+    Clustering algorithm is a map 
+    $$\text{cluster} (X, m) \rightarrow C$$
+    $$X = \{x_i | x_i \in \mathbb{R}^d, i \in \left( 1 \ldots n \right) \}, m \in \mathbb{N}$$
+    $$C = \{ c_i | c_i \in \left( 1 \ldots m \right), i \in \left( 1 \ldots n \right)\}$$
+    where $m$ is number of clusters and $n$ is number of points. 
+\end{definition}
 
 \begin{figure}[H]
     \includegraphics{example_clustering}
@@ -138,89 +176,109 @@ Clustering algorithm takes $X$ and $m$ and outputs $C = \{ c_i | c_i \in \left( 
 \subsection{Strings}
 
 \begin{definition}
+    String is a sequence of letters of finite size. \\
     String of length $l$ over alphabet $A = \{ 1 \ldots m \}$ is a map $s: \{ 1 \ldots l\} \rightarrow A$.
     Usually elements of $A$ are denoted as characters for convenience.
 \end{definition}
 
 \begin{definition}
+    Alignment of strings is a way representing them to spot similarities. \\
     Alignment of strings $s_1$ and $s_2$ of lengths $l_1$ and $l_2$ respectively, 
     over alphabet $A$ is a pair of strings $\hat{s}_1$ and $\hat{s}_2$ 
-    of length $l$ over alphabet $A \sqcup \{ - \}$, 
-    such that there exists increasing functions $f_i: \{1 \ldots l_i \} \rightarrow \{ 1 \ldots l\}$ 
-    such that $\hat{s}_i|_{\hat{s}_i^{-1} (A)} \circ f_i = s_i$.
+    of length $l$ over alphabet $A \sqcup \{ '-' \}$, 
+    such that there exists increasing functions $f_i: \{1 \ldots l_i \} \rightarrow \{ 1 \ldots l\}, i \in \{1, 2\}$ 
+    such that $\hat{s}_i \circ f_i = s_i$ and $\Image (f_i) = \hat{s}_i^{-1}(A)$. \\
+    
+    Letter $'-'$ represents gap in string. String $\hat{s}_i$ represents string $s_i$ with inserted letter $'-'$, that was not present in alphabet $A$,
+    into random places, and function $f_i$ maps indexes of letters in $s_i$ to corresponding indexes in $\hat{s}_i$.
 \end{definition}
-
-\begin{remark}
-    $\Image (f_i) = \hat{s}_i^{-1}(A)$
-\end{remark}
 
 \begin{example}
     Alignment of strings $s_1 = CABCAABA$ and $s_2 = ABADBBAD$ 
     over alphabet $\{ A, B, C, D\}$.
 
     \begin{center}
-        \begin{tabular}{|| c | c c c c c c c c c ||}
-         $s_1$ & C & A & B & C & A & A & B & A & \\ 
-         $s_2$ & A & B & A & D & B & B & A &   & \\  
-         $\hat{s}_1$ & C & A & B & C & - & A & A & B & A \\ 
-         $\hat{s}_2$ & - & A & B & - & A & D & B & B & A   
+        Initial strings. \\
+        \begin{tabular}{|| c | c c c c c c c c ||}
+         $s_1$ & C & A & B & C & A & A & B & A \\ 
+         $s_2$ & A & B & A & D & B & B & A &   \\    
         \end{tabular}
+
+        \hfill \break 
+
+        Aligned strings. \\
+        \begin{tabular}{|| c | c c c c c c c c c ||}
+            $\hat{s}_1$ & C & A & B & C & - & A & A & B & A \\ 
+            $\hat{s}_2$ & - & A & B & - & A & D & B & B & A   
+        \end{tabular}
+
     \end{center}
 \end{example}
 
 \begin{definition}
-    For given matrix $G \in \mathbb{R}^{|A| \times |A|}$ and $p \in \mathbb{R}$ 
+    
+    For given matrix $G \in \mathbb{R}^{|A \sqcup \{ '-' \} | \times |A \sqcup \{ '-' \}|}$ and $p \in \mathbb{R}$ 
     score of alignment $\hat{s}_1, \hat{s}_2$ is 
-    $$ S(\hat{s}_1, \hat{s}_2) = \sum_{i = 1}^l \delta_i, 
-        \text{ where } 
-        \delta_{i}=
-            \left\{\begin{array}{cc}
-            g_{\hat{s}_1(i) \hat{s}_2(i)},& \hat{s}_1(i) \neq - \text{ and } \hat{s}_2(i) \neq -\\
-            p, & 
-            \end{array}\right. 
-    $$
+    $$ S(\hat{s}_1, \hat{s}_2) = \sum_{i = 1}^l g_{\hat{s}_1(i), \hat{s}_2(i)}. $$
+    %     \text{ where } 
+    %     \delta_{i}=
+    %         \left\{\begin{array}{cc}
+    %         g_{\hat{s}_1(i) \hat{s}_2(i)},& \hat{s}_1(i) \neq - \text{ and } \hat{s}_2(i) \neq -\\
+    %         p, & 
+    %         \end{array}\right. 
+    % $$
+    Matrix $G$ stores predefined penalties for mismatches and 
+    gaps and encouragement for matches. \\
+    
+    There are other popular ways to define score of alignment, 
+    that penalty one longer gap less than several small gaps. 
+       
 \end{definition}
 
 
-\begin{theorem}
-    If $G$ is symmetric and 
-    $
-    g_{ij} =
-        \left\{\begin{array}{cc}
-        0, & i = j\\
-        >0, & 
-        \end{array}\right.
-    $ and $p > 0$, then we can define metric for strings over alphabet $A$ as 
-    $$ d(s_1, s_2) = \min \{S(\hat{s}_1, \hat{s}_2)\}$$ 
-\end{theorem}
+% \begin{theorem}
+%     If $G$ is symmetric and 
+%     $
+%     g_{ij} =
+%         \left\{\begin{array}{cc}
+%         0, & i = j\\
+%         >0, & 
+%         \end{array}\right.
+%     $ and $p > 0$, then we can define metric for strings over alphabet $A$ as 
+%     $$ d(s_1, s_2) = \min \{S(\hat{s}_1, \hat{s}_2)\}$$ 
+% \end{theorem}
 
-\begin{proof}
+% \begin{proof}
     
-\end{proof}
+% \end{proof}
 
 \begin{definition}
+    We are interested in the alignment with the biggest possible score. 
+    So we define score between two strings as 
+    $$ S(s_1, s_2) = \max_{\hat{s}_1, \hat{s}_2} S(\hat{s}_1, \hat{s}_2 )$$ 
+\end{definition}
+
+\begin{definition}
+    Substring is continious piece of a given string.\\
     For a string $s$ of length $l$, sub-string $s_s$ 
     is a string of length $l_s$, such that there exists an function
-    $$f: \{ 1 \ldots l_s \} \rightarrow \{ 1 \ldots l\}$$
-    $$f(i) = i + d $$
-    $$s \circ f = s_s $$
+    $f: \{ 1 \ldots l_s \} \rightarrow \{ 1 \ldots l\}$
+    such that
+    $$ f(i) = i + d $$
+    $$s \circ f = s_s.$$
 \end{definition}
 
 \begin{definition}
     For a string $s_1$ and $s_2$ of lengths $l_1, l_2$ correspondingly, define string-sub-string score as 
-    $$ S_s (s_1, s_2) = \min \{ S(s_s, s_2) | s_s \text{ is a sub-string of } s \}$$
-
-    and corresponding alignment $\hat{s}_1, \hat{s}_2$ 
-    are pair of strings of lengths $l$ over alphabet $A \sqcup \{ - \}$
-    such that there exists increasing functions 
-    $f_1: \{1 \ldots l_1 \} \rightarrow \{ 1 \ldots l\}$
+    $$ S_s (s_1, s_2) = \max \{ S(s_s, s_2) | s_s \text{ is a sub-string of } s_1 \}$$
+    and corresponding alignment $\hat{s}_1, \hat{s}_2$.
 \end{definition}
 
 \begin{definition}
     For a string $s$ of length $l$ and set of strings $R = \{ s_1 \ldots s_n \}$ 
     of lengths $\{ l_1 \ldots l_n \}$ correspondingly, 
     multiple alignment is tuple $\hat{s}, \hat{s}_1 \ldots \hat{s}_n$, 
-    of strings of length $l$ over alphabet $A \sqcup \{ - \}$, such that $\sum_{i = 1}^n S(\hat{s}, \hat{s}_i)$ is minimal.
+    of strings of length $l$ over alphabet $A \sqcup \{ '-' \}$, such that $\sum_{i = 1}^n S(\hat{s}, \hat{s}_i)$ is maximal.
 \end{definition}
 
 \begin{definition}
@@ -228,7 +286,7 @@ Clustering algorithm takes $X$ and $m$ and outputs $C = \{ c_i | c_i \in \left( 
     $$ R = \{ s_s | \text{length of } s_s > l, S_s(s, s_s) < r \}$$
 \end{definition}
 
-\section{Task}
+\subsection{Task}
 Given reference string $s_r$ and reads $R$ for an unknown target string $s_t$, 
 we know that $S(s_r, s_t) < D$ and whant to find $s_t$. \\
 
@@ -244,7 +302,20 @@ Plan:
     \caption{Example of reference string, target string and reads.}
 \end{figure}
 
+\subsection{Pair Hidden Markov Model}
+Each step of pairwise alignment can be assigned to one of 
+the three states $\{ M, X, Y\}$, where $M$ is a match, 
+$X$ is a gap in $s_1$, $Y$ is a gap in $s_2$.  
 
+
+
+\newpage
+
+\begin{thebibliography}{00}
+    \bibitem{longshot}
+    Longshot is variant calling tool for long reads based on pair-Hidden Markov Model.
+    \\\texttt{https://www.nature.com/articles/s41467-019-12493-y}
+\end{thebibliography}
 
 \end{document}
 

@@ -3,4 +3,5 @@
 \contentsline {section}{\numberline {2}Methods}{4}{}%
 \contentsline {subsection}{\numberline {2.1}Clustering}{4}{}%
 \contentsline {subsection}{\numberline {2.2}Strings}{4}{}%
-\contentsline {section}{\numberline {3}Task}{5}{}%
+\contentsline {subsection}{\numberline {2.3}Task}{5}{}%
+\contentsline {subsection}{\numberline {2.4}Pair Hidden Markov Model}{6}{}%
