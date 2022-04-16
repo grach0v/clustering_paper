@@ -15,6 +15,120 @@
 	\frame {
 		\titlepage
 	}
+
+    \frame{
+        \frametitle{Introduction to bioinformatics}
+        \begin{itemize}
+            \item The most useful biological data is DNA (genome) sequence.
+            \item Each chromosome is represented as a string over alphabet $\{ A, C, G, T\}$.
+            \item Most species are diploid $\Rightarrow$ each chromosome is paired.
+            \item It is very large (human genome is 6.4 billion bp).
+            \item Genomes of unrelated humans are $99.9\%$ similar. 
+            \item Determine reference genome and identify difference for any individual.
+        \end{itemize}
+    }
+
+    \frame {
+        \frametitle{Reading genome}
+        \begin{itemize}
+            \item Read random peaces of genome (reads).
+            \item Find similar peaces in reference genome (Alignment).
+            \item Estimate difference (variant calling).
+        \end{itemize}
+
+        \begin{block}{Example}
+            \begin{figure}
+                \includegraphics[scale=0.3]{aligned_reads}
+                \caption{Reading genome example.}
+            \end{figure}
+        \end{block}
+    }
+
+    \frame {
+        \frametitle{Alignment}
+        \begin{block}{Idea}
+            Assume that string $s_1$ was obtained from $s_2$ by applying 3 types of errors to it.
+            \begin{itemize}
+                \item Substitution. Replace one letter with another.
+                \item Insertion. A letter was inserted to string.
+                \item Delition. A letter was deleted from string.
+            \end{itemize}
+            Task is to find most likely sequence of errors for given $s_1$ and $s_2$.
+        \end{block}
+    }
+
+    \frame{
+        \frametitle{Alignment}
+        \begin{block}{Example}
+            Alignment of strings $s_1 = CABCAABA$ and $s_2 = ABADBBAD$ 
+            over alphabet $\Sigma = \{ A, B, C, D\}$.
+        
+            \begin{center}
+                Initial strings. \\
+                \begin{tabular}{|| c | c c c c c c c c ||}
+                 $s_1$ & C & A & B & C & A & A & B & A \\ 
+                 $s_2$ & A & B & A & D & B & B & A &   \\    
+                \end{tabular}
+        
+                \hfill \break 
+        
+                Aligned strings. \\
+                \begin{tabular}{|| c | c c c c c c c c c ||}
+                    $\hat{s}_1$ & C & A & B & C & - & A & A & B & A \\ 
+                    $\hat{s}_2$ & - & A & B & - & A & D & B & B & A   
+                \end{tabular}
+        
+            \end{center}
+        \end{block}
+    }
+
+    \frame{
+        \frametitle{Representing alignment as pair HMM}
+        \begin{block}{Hidden states}
+            \begin{itemize}
+                \item M: Match or Mismatch.
+                \item X: Insertion to $s_1$.
+                \item Y: Insertion to $s_2$ (Delition).
+            \end{itemize}   
+        \end{block}
+
+        \begin{block}{Observations}
+            \begin{itemize}
+                \item M: $\{ (x, y) \:|\: x, y \in \Sigma\}$.
+                \item X: $\{ (x, -) \:|\: x \in \Sigma\}$.
+                \item Y: $\{ (-, y) \:|\: y \in \Sigma\}$.
+            \end{itemize}
+            
+        \end{block}
+    }
+
+    \frame{
+        \frametitle{Representing alignment as pair HMM}
+        \begin{block}{Example}
+            Alignment of strings $s_1 = CABCAABA$ and $s_2 = ABADBBAD$ 
+            over alphabet $\Sigma = \{ A, B, C, D\}$.
+        
+            \begin{center}
+                Initial strings. \\
+                \begin{tabular}{|| c | c c c c c c c c ||}
+                 $s_1$ & C & A & B & C & A & A & B & A \\ 
+                 $s_2$ & A & B & A & D & B & B & A &   \\    
+                \end{tabular}
+        
+                \hfill \break 
+        
+                Aligned strings. \\
+                \begin{tabular}{|| c | c c c c c c c c c ||}
+                    $\hat{s}_1$ & C & A & B & C & - & A & A & B & A \\ 
+                    $\hat{s}_2$ & - & A & B & - & A & D & B & B & A \\
+                    O           & X & M & M & X & Y & M & M & M & M  
+                \end{tabular}
+        
+            \end{center}
+        \end{block}
+    }
+
+
 	\frame {
 		\frametitle{Clustering}
         \begin{block}{Clustering}
