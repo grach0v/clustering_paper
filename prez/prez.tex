@@ -1,14 +1,34 @@
-\documentclass{beamer}
+\documentclass[9pt]{beamer}
+
+\mode<presentation>
+{
+  \usetheme{HSE}
+  \usecolortheme{default}
+  \usefonttheme{serif}
+  \setbeamertemplate{navigation symbols}{}
+  \setbeamertemplate{caption}[numbered]
+}
+
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{movie15}
+\usepackage{varwidth}
+
 
 \graphicspath{ {./images/} }
 
 \DeclareMathOperator{\argmax}{argmax}
 
-\title{Clustering of Multidimensional Random Variables to Improve HMM Sequence Alignment Accuracy}
-\subtitle{Denis Grachev}
+\title[]{
+Clustering of Multidimensional Random Variables to Improve HMM Sequence Alignment Accuracy
+}
+\author[Denis Grachev]{Denis Grachev\\
+\qquad\\\
+Scientific supervisor:\\
+PhD candidate, Timofey Prodanov}
+\date{\today} % Date, can be changed to a custom date
+
+
 
 %\usetheme{lucid}
 \begin{document}
@@ -46,8 +66,9 @@
 
     \frame {
         \frametitle{Alignment}
+        Global alignment of two strings - way of representing 2 strings to spot similarities.
         \begin{block}{Idea}
-            Assume that string $s_1$ was obtained from $s_2$ by applying 3 types of errors to it.
+            Assume that string $s_2$ was obtained from $s_1$ by applying 3 types of errors to it.
             \begin{itemize}
                 \item Substitution. Replace one letter with another.
                 \item Insertion. A letter was inserted to string.
@@ -103,7 +124,7 @@
     }
 
     \frame{
-        \frametitle{Representing alignment as pair HMM}
+        \frametitle{Representing alignment as HMM}
         \begin{block}{Example}
             Alignment of strings $s_1 = CABCAABA$ and $s_2 = ABADBBAD$ 
             over alphabet $\Sigma = \{ A, B, C, D\}$.
@@ -122,12 +143,53 @@
                     $\hat{s}_1$ & C & A & B & C & - & A & A & B & A \\ 
                     $\hat{s}_2$ & - & A & B & - & A & D & B & B & A \\
                     O           & X & M & M & X & Y & M & M & M & M  
-                \end{tabular}
-        
+                \end{tabular}        
             \end{center}
         \end{block}
     }
 
+    \frame{
+        \frametitle{Representing alignment as HMM}
+        \begin{block}{Scoring alignment}
+            \begin{itemize}
+                \item Based on HMM each alignment assigned a probability.
+                \item Can find alignment with highest probability.
+            \end{itemize}
+        \end{block}
+
+        \begin{block}{Picture}
+            \begin{figure}
+                \includegraphics[scale=0.15]{Markov_chain.png}
+                \caption{Picture of HMM}
+            \end{figure}
+        \end{block}
+    }
+    
+    \frame{
+        \frametitle{Variant calling}
+        Longshot is a variant calling tool that uses same HMM to estimate difference.
+        \begin{block}{Picture}
+            \begin{figure}
+                \includegraphics[scale=0.15]{longshot.png}
+                \caption{Longshot algorithm}
+            \end{figure}
+        \end{block}
+    }
+
+    \frame{
+        \frametitle{Improving accuracy}
+        \begin{itemize}
+            \item Different sequence technologies produce different read profiles.
+            \item Reads obtained from different regions have different read profiles.
+        \end{itemize}
+        To improve accuracy of variant calling, we can use different transition probabilities for different read profiles.
+        \begin{itemize}
+            \item Develop an algorithm to group reads by their profile.
+            \item Add such functionality to Longshot (in progress).
+        \end{itemize}
+        
+    }
+    
 
 	\frame {
 		\frametitle{Clustering}
@@ -146,63 +208,27 @@
         \end{block}
 	}
 
-    \frame {
-        \frametitle{Genome}
-
-        \begin{block}{Defenition}
-        Reference genome - $S_r$ string over alphabet $\{ A, C, G, T \}$ . \\
-        Example genome - $S_e$ string over alphabet $\{ A, C, G, T\}$. \\
-        Example genome does not differ much from reference genome. \\
-        Reads - $R = \{r_i | r_i - \text{random substring from } S_e \text{ with errors} \}$ \\
-        \end{block}
-
-        \begin{block}{Task}
-        We have $S_r$ and $R$, want to find out $S_e$. \\ 
-        \end{block}
-
-    }
-
-    \frame {
-        \frametitle{Allignment}
-        \begin{block}{Explanation}
-        To find out $S_e$ we try to locate substrings from $R$ on $S_r$ with least possible amount of errors.
-        This process is called alignment.\\
-        Then we try to estimate most likely difference between $S_e$ and $S_r$.\\
-        This process is called variant calling.\\
-        \end{block}
-
-        \begin{block}{Example}
-        \begin{figure}
-            \includegraphics[scale=0.3]{aligned_reads}
-            \caption{Example of alignment}
-        \end{figure}
-        \end{block}
-    }
-
-    \frame {
-        \frametitle{Markov chains}
-        The probabilities of transitions are not equal. \\
-        We can use it for better accuracy of variant calling.\\
-        Also these probabilities varies depending on a region. \\
-        For every read we can calculate transition probabilities and cluster them. \\
-        Then use probabilities obtained in each cluster for corresponding reads.\\
-        
-        \begin{figure}
-            \includegraphics[scale=0.3]{markov_chains}
-            \caption{transitions}
-        \end{figure}
-    }
 
     \frame {
         \frametitle{Algorithm}
         \begin{block}{Preprocess}
             \begin{enumerate}
-                \item For each read calculate each transitions.
+                \item For each read calculate probability of each transitions. \\
+                (MM, MI, MD $\ldots$)
                 \item Each feateture is devided by standart deviation.
                 \item PCA method is applied for resulting data.
             \end{enumerate}
         \end{block}
-        
+
+        \begin{figure}
+            \includegraphics[scale=0.3]{pca.png}
+            \caption{Example of PCA}
+        \end{figure}
+    }
+
+    \frame{
+        \frametitle{Algorithm}
+    
         Assume that distribution in each cluster is multidimensional normal distribution.
 
         \begin{block}{Likelihood}
@@ -220,7 +246,7 @@
 
         \begin{align*}
             L_i &= \sum_{x \in \chi_i} \log(p(x| \omega_i, \theta_i)P(\omega_i)) \\
-                &=  \log \left( 
+                &=  \sum_{x \in \chi_i} \log \left( 
                 \frac{ \exp \left( \frac{-1}{2} (x - \mu_i)^T \Sigma_i^{-1} (x - \mu_i) \right) }
                 {(2 \pi)^{d/2} |\Sigma_i| ^ {1/2}}
                 \right) + n_i \log(P(\omega_i)) \\
@@ -299,7 +325,7 @@
 
         \begin{block}{Fix 2}
             \begin{itemize}
-                \item Pick points randomly and apply algorithm for them. Then repeat for another points.
+                \item Pick points randomly and apply algorithm for them. Then repeat for other points.
             \end{itemize}
         \end{block}
 
@@ -308,33 +334,57 @@
     \frame {
         \frametitle{Algorithm}
         \begin{block}{Fixed}
-        \begin{enumerate}
-            \item Initialize clusters and estimate their parameters
-            \item Devide $X$ into $p$ random disjoined groups $g_1 \ldots g_p$.
-            \item Loop c from $1$ to $p$.
             \begin{enumerate}
-                \item Loop $x$ over $g_c$.
-                \item Let $x$ currently be in cluster $i$.
+                \item Initialize clusters and estimate their parameters
+                \item Divide $X$ into $p$ random disjoint groups $g_1 \ldots g_p$.
+                \item Loop c from $1$ to $p$.
                 \begin{enumerate}
-                    \item If $n_i <= 1$, then pass to next point.
-                    \item Calculate $\delta_{j}=
-                        \left\{\begin{array}{cc}
-                        \Delta L_{j}, & j \neq i \\
-                        \Delta L_{i}, & j=i
-                        \end{array}\right. $
-                    \item Trasfer $x$ to $\argmax (\delta_j)$ cluster.
-                \end{enumerate} 
-                \item Update parameters.
-                \item If overall likelihood decreased, revert changes.
+                    \item Loop $x$ over $g_c$.
+                    \begin{enumerate}
+                        \item Let $x$ currently be in cluster $i$.
+                        \item If $n_i <= 1$, then pass to next point.
+                        \item Calculate $\delta_{j}=
+                            \left\{\begin{array}{cc}
+                            \Delta L_{j}, & j \neq i \\
+                            \Delta L_{i}, & j=i
+                            \end{array}\right. $
+                        \item Transfer $x$ to $\argmax (\delta_j)$ cluster.
+                    \end{enumerate} 
+                    \item Update parameters.
+                    \item If overall likelihood is not increased, revert changes.
+                \end{enumerate}
+                \item If any changes were made, repeat step 2.
             \end{enumerate}
-            \item If any changes were made, repeat step 2.
-        \end{enumerate}
         \end{block}
     }
 
+    \frame{
+        \frametitle{Algorithm}
+
+        Example of work of the stepwise iterative maximum likelihood algorithm.
+
+        \begin{varwidth}{\textwidth}
+            \begin{figure}
+                \includegraphics[width=0.55\textheight]{gaussian_generated_3.png}
+                \caption{Initial clustering}
+            \end{figure}
+        \end{varwidth}
+        \hfill
+        \begin{varwidth}{\textwidth}
+            \begin{figure}
+                \includegraphics[width=0.55\textheight]{siml_generated_3.png}
+                \caption{Obtained clustering}
+            \end{figure}
+        \end{varwidth}
+    }
+
     \frame {
-        \frametitle{Algorithm} {
-            We can cluster reads and use different Markov models for each cluster. 
+        \frametitle{In progress} {
+            Implement proposed algorithm into Longshot. \\
+            Cluster reads and use different transition probabilities for different clusters.\\
+            Measure increase of accuracy. \\
+            \hfill \break
+            Thank admission committee.
         }
     }
 
